@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tsukami — 最初の3秒を、データで磨く。</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+
+  .hero {
+    padding: 96px 0 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(79,70,229,0.10) 0%, transparent 60%);
+    z-index: -1;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 9999px;
+    background: rgba(79,70,229,0.08); color: var(--primary);
+    font-size: 13px; font-weight: 600; margin-bottom: 24px;
+  }
+  .hero-title {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin: 0 0 24px;
+  }
+  .hero-sub {
+    font-size: 19px; color: var(--slate-700);
+    max-width: 640px; margin: 0 auto 40px;
+    line-height: 1.7;
+  }
+  .hero-ctas { display: flex; gap: 12px; justify-content: center; }
+
+  .stats { display: flex; gap: 64px; justify-content: center; margin-top: 64px; }
+  .stat-num { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; font-family: 'Geist Mono', monospace; }
+  .stat-label { font-size: 13px; color: var(--slate-400); }
+
+  .section { padding: 96px 0; }
+  .section-eyebrow { color: var(--primary); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  .section-title { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 16px; }
+  .section-sub { font-size: 17px; color: var(--slate-700); margin: 0 0 48px; max-width: 600px; }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+  @media (max-width: 900px) { .feature-grid { grid-template-columns: 1fr; } }
+  .feature-card {
+    padding: 32px; background: #fff;
+    border-radius: 16px; border: 1px solid rgba(15,23,42,0.06);
+    transition: all 0.2s;
+  }
+  .feature-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(15,23,42,0.08); }
+  .feature-icon {
+    width: 96px; height: 96px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feature-icon img { width: 100%; height: 100%; object-fit: contain; }
+  .feature-title { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
+  .feature-text { font-size: 15px; color: var(--slate-700); line-height: 1.7; margin: 0; }
+
+  .demo-preview {
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 30px 80px rgba(79,70,229,0.20);
+    border: 1px solid rgba(15,23,42,0.06);
+    background: #fff;
+    margin-top: 48px;
+  }
+  .demo-header {
+    background: var(--slate-100); padding: 12px 16px;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .demo-dot { width: 12px; height: 12px; border-radius: 50%; background: #CBD5E1; }
+  .demo-body { padding: 40px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 32px; }
+  .demo-input-box { background: var(--slate-100); padding: 24px; border-radius: 12px; }
+  .demo-score { text-align: center; }
+  .demo-score-big { font-size: 96px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; font-family: 'Geist Mono', monospace; }
+
+  .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 48px; }
+  @media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr; } }
+  .price-card {
+    padding: 36px 28px; background: #fff;
+    border: 1px solid rgba(15,23,42,0.08);
+    border-radius: 20px;
+    position: relative;
+  }
+  .price-card.featured {
+    border-color: var(--primary);
+    box-shadow: 0 20px 60px rgba(79,70,229,0.15);
+    transform: scale(1.04);
+  }
+  .price-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: linear-gradient(135deg, #4F46E5, #EC4899);
+    color: #fff; padding: 4px 14px; border-radius: 9999px;
+    font-size: 12px; font-weight: 700;
+  }
+  .price-name { font-size: 20px; font-weight: 700; margin: 0 0 8px; }
+  .price-desc { font-size: 14px; color: var(--slate-400); margin: 0 0 24px; min-height: 40px; }
+  .price-amount { font-size: 48px; font-weight: 800; letter-spacing: -0.03em; font-family: 'Geist Mono', monospace; }
+  .price-period { font-size: 16px; color: var(--slate-400); font-weight: 500; }
+  .price-features { list-style: none; padding: 0; margin: 24px 0; }
+  .price-features li {
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--slate-700);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .price-features li::before {
+    content: '';
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    margin-top: 2px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2310B981' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .cta-section {
+    background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+    border-radius: 24px;
+    padding: 64px 48px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 96px;
+  }
+  .cta-section h2 { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 16px; }
+  .cta-section p { font-size: 17px; opacity: 0.9; margin: 0 0 32px; }
+  .cta-section .btn-primary { background: #fff; color: var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+  footer {
+    padding: 48px 0; border-top: 1px solid rgba(15,23,42,0.06);
+    color: var(--slate-400); font-size: 14px;
+    display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="logo" style="text-decoration:none">
+    <img src="../images/logo.png" alt="Tsukami" class="logo-img">
+  </a>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="btn-ghost" style="padding:8px 16px;font-size:14px">機能</button>
+    <button class="btn-ghost" style="padding:8px 16px;font-size:14px">料金</button>
+    <button class="btn-ghost" style="padding:8px 16px;font-size:14px">ログイン</button>
+    <button class="btn-primary" style="padding:8px 18px;font-size:14px">無料ではじめる</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">
+      <span class="dot-pulse"></span>
+      <span style="display:inline-flex;align-items:center;gap:6px">
+        <img src="../images/instagram.png" class="brand-icon-sm" alt="">
+        <img src="../images/Youtube.jpg" class="brand-icon-sm" alt="">
+        <img src="../images/TikTok.png" class="brand-icon-sm" alt="">
+        <span style="margin-left:4px">Instagram / YouTube Shorts / TikTok 対応</span>
+      </span>
+    </div>
+    <h1 class="hero-title">
+      最初の<span class="gradient-text">3秒</span>を、<br>データで磨く。
+    </h1>
+    <p class="hero-sub">
+      ショート動画の伸びを決める「冒頭フック」を、AIが多角的にスコアリング。<br>
+      改善案まで一気に提示する、クリエイターのためのコピー診断ツール。
+    </p>
+    <div class="hero-ctas">
+      <button class="btn-primary" style="padding:16px 32px;font-size:16px">無料で分析を試す →</button>
+      <button class="btn-ghost" style="padding:16px 32px;font-size:16px">▶ 30秒デモを見る</button>
+    </div>
+
+    <div class="stats">
+      <div>
+        <div class="stat-num gradient-text">11</div>
+        <div class="stat-label">評価観点</div>
+      </div>
+      <div>
+        <div class="stat-num gradient-text">25</div>
+        <div class="stat-label">対応業界</div>
+      </div>
+      <div>
+        <div class="stat-num gradient-text">&lt;3s</div>
+        <div class="stat-label">分析時間</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Demo Preview -->
+<section class="container" style="padding-bottom: 96px">
+  <div class="demo-preview">
+    <div class="demo-header">
+      <div class="demo-dot"></div>
+      <div class="demo-dot" style="background:#FDE68A"></div>
+      <div class="demo-dot" style="background:#86EFAC"></div>
+      <div style="margin-left:auto;font-size:12px;color:var(--slate-400)" class="mono">tsukami.app/analyze</div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-input-box">
+        <div style="font-size:12px;color:var(--slate-400);margin-bottom:8px;font-weight:600;letter-spacing:0.05em">YOUR HOOK</div>
+        <div style="font-size:20px;font-weight:600;line-height:1.5;margin-bottom:24px">「3秒で痩せる方法、実は99%の人が知らない。」</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="chip chip-primary" style="display:inline-flex;align-items:center;gap:6px"><img src="../images/instagram.png" class="brand-icon-sm" alt=""> IG Reels</span>
+          <span class="chip">フィットネス</span>
+        </div>
+      </div>
+      <div class="demo-score">
+        <div style="font-size:12px;color:var(--slate-400);margin-bottom:4px;font-weight:600;letter-spacing:0.05em">TOTAL SCORE</div>
+        <div class="demo-score-big gradient-text">78</div>
+        <div style="font-size:14px;color:var(--success);font-weight:600;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> 業界平均 +18〜42%</div>
+        <div style="margin-top:24px;padding:16px;background:rgba(16,185,129,0.06);border-radius:10px;text-align:left;font-size:13px;line-height:1.6">
+          <strong style="color:var(--success)">伸びる要素:</strong> 数字配置・常識破壊フレーズ<br>
+          <strong style="color:var(--warning)">改善余地:</strong> ターゲット明示でさらに+11
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section">
+  <div class="container">
+    <div class="section-eyebrow">FEATURES</div>
+    <h2 class="section-title">勘ではなく、根拠で。</h2>
+    <p class="section-sub">コピーライティング理論×最新LLMを組み合わせた、ハイブリッド評価エンジン。</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><img src="../images/storyset/target.svg" alt=""></div>
+        <h3 class="feature-title">多角的スコアリング</h3>
+        <p class="feature-text">インパクト・好奇心・明確さ・感情強度など、11の評価観点で多角的にフックを採点。レーダーチャートで弱点も一目で把握。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="../images/storyset/innovation.svg" alt=""></div>
+        <h3 class="feature-title">改善案を5パターン</h3>
+        <p class="feature-text">ただ点数を出すだけじゃない。AIが「数字を追加」「ターゲット明示」など具体的な改善方針付きで書き直し案を提示。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="../images/storyset/data-report.svg" alt=""></div>
+        <h3 class="feature-title">Instagram実績レポート</h3>
+        <p class="feature-text">過去のフック＋投稿URLを貼るだけで、どのパターンが伸びたかを自動分析。次にやるべきフックも提案します。<span class="chip chip-primary" style="margin-left:4px">Pro</span></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="../images/storyset/winners.svg" alt=""></div>
+        <h3 class="feature-title">業界別ベンチマーク</h3>
+        <p class="feature-text">美容・フィットネス・BtoBなど25業界それぞれの平均値と比較。「同業界のトップ層」と比較した立ち位置も可視化。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="../images/storyset/search.svg" alt=""></div>
+        <h3 class="feature-title">競合アカウント分析</h3>
+        <p class="feature-text">気になるアカウントのURLを入れるだけで、そのアカウントのフックパターンを抽出。「真似すべき型」が見つかります。<span class="chip chip-primary" style="margin-left:4px">Pro</span></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="../images/storyset/notebook.svg" alt=""></div>
+        <h3 class="feature-title">分析履歴と比較</h3>
+        <p class="feature-text">過去の分析を全て保存。改善前と改善後を並べて見比べたり、お気に入りでフックパターン集を作れます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="section" style="background:#fff;border-top:1px solid rgba(15,23,42,0.04);border-bottom:1px solid rgba(15,23,42,0.04)">
+  <div class="container">
+    <div class="section-eyebrow" style="text-align:center">PRICING</div>
+    <h2 class="section-title" style="text-align:center">あなたの規模に合わせて。</h2>
+    <p class="section-sub" style="text-align:center;margin-left:auto;margin-right:auto">いつでもアップグレード・キャンセル可能。年契約で2ヶ月無料。</p>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3 class="price-name">Free</h3>
+        <p class="price-desc">フックを試しに点数化したい個人向け</p>
+        <div><span class="price-amount">¥0</span></div>
+        <ul class="price-features">
+          <li>1日5回までの分析</li>
+          <li>改善案 3パターン</li>
+          <li>履歴 30日保存</li>
+          <li>プロファイル 1個</li>
+        </ul>
+        <button class="btn-ghost" style="width:100%">無料ではじめる</button>
+      </div>
+
+      <div class="price-card featured">
+        <div class="price-badge">人気</div>
+        <h3 class="price-name">Pro</h3>
+        <p class="price-desc">本気で伸ばしたい個人クリエイター・SNS担当に</p>
+        <div><span class="price-amount">¥2,980</span><span class="price-period">/ 月</span></div>
+        <ul class="price-features">
+          <li>分析・履歴 無制限</li>
+          <li>改善案 5パターン</li>
+          <li>Instagram レポート 月20件</li>
+          <li>競合分析 月10件</li>
+          <li>PDF/共有リンク出力</li>
+          <li>プロファイル 3個</li>
+        </ul>
+        <button class="btn-primary" style="width:100%">Proにアップグレード</button>
+      </div>
+
+      <div class="price-card">
+        <h3 class="price-name">Team</h3>
+        <p class="price-desc">代理店・複数アカウント運用するマーケチームに</p>
+        <div><span class="price-amount">¥14,800</span><span class="price-period">/ 月</span></div>
+        <ul class="price-features">
+          <li>Pro機能の全て</li>
+          <li>Instagram レポート 月100件</li>
+          <li>競合分析 月50件</li>
+          <li>チームメンバー 10人</li>
+          <li>共有ワークスペース</li>
+          <li>API連携</li>
+          <li>プロファイル 10個</li>
+        </ul>
+        <button class="btn-ghost" style="width:100%">Teamを試す</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="container" style="padding-top:96px">
+  <div class="cta-section">
+    <h2>あなたの直感を、データが裏付ける。</h2>
+    <p>3秒で勝負が決まるショート動画の世界で、勝率を上げる。</p>
+    <button class="btn-primary" style="padding:16px 36px;font-size:16px;font-weight:700">無料ではじめる →</button>
+  </div>
+</section>
+
+<footer>
+  <div class="container" style="display:flex;justify-content:space-between;width:100%">
+    <div class="logo" style="opacity:0.6">
+      <img src="../images/logo.png" alt="Tsukami" class="logo-img logo-img-sm">
+    </div>
+    <div>© 2026 Tsukami. 最初の3秒を、データで磨く。</div>
+  </div>
+</footer>
+
+</body>
+</html>

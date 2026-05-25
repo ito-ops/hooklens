@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagramレポート — Tsukami</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .container { max-width: 1240px; margin: 0 auto; padding: 32px; }
+
+  .page-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 32px; gap: 24px; flex-wrap: wrap;
+  }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 6px; }
+  .page-sub { color: var(--slate-400); margin: 0; font-size: 14px; }
+
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;
+  }
+  @media (max-width: 900px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: #fff; border-radius: 14px; padding: 20px;
+    border: 1px solid rgba(15,23,42,0.04);
+  }
+  .stat-label { font-size: 12px; color: var(--slate-400); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .stat-val { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-family: 'Geist Mono', monospace; }
+  .stat-trend { font-size: 12px; color: var(--success); font-weight: 600; margin-top: 6px; }
+  .stat-trend.down { color: var(--danger); }
+
+  .grid-main { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; }
+  @media (max-width: 1000px) { .grid-main { grid-template-columns: 1fr; } }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; color: var(--slate-400); font-weight: 600; padding: 12px; border-bottom: 1px solid rgba(15,23,42,0.06); letter-spacing: 0.05em; }
+  td { padding: 16px 12px; border-bottom: 1px solid rgba(15,23,42,0.04); font-size: 14px; vertical-align: top; }
+  tr:hover td { background: rgba(79,70,229,0.02); }
+
+  .hook-cell { font-weight: 500; line-height: 1.5; max-width: 340px; }
+  .post-thumb {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: linear-gradient(135deg, #FB7185, #EC4899);
+    display: inline-block; vertical-align: middle; margin-right: 8px;
+  }
+  .post-thumb.b2 { background: linear-gradient(135deg, #4F46E5, #818CF8); }
+  .post-thumb.b3 { background: linear-gradient(135deg, #10B981, #34D399); }
+  .post-thumb.b4 { background: linear-gradient(135deg, #F59E0B, #FBBF24); }
+  .post-thumb.b5 { background: linear-gradient(135deg, #94A3B8, #CBD5E1); }
+
+  .score-pill {
+    display: inline-block; padding: 4px 10px; border-radius: 9999px;
+    font-family: 'Geist Mono', monospace; font-weight: 700; font-size: 13px;
+  }
+  .score-pill.high { background: rgba(16,185,129,0.12); color: var(--success); }
+  .score-pill.mid { background: rgba(245,158,11,0.12); color: var(--warning); }
+  .score-pill.low { background: rgba(244,63,94,0.12); color: var(--danger); }
+
+  .views-mono { font-family: 'Geist Mono', monospace; font-weight: 600; }
+
+  .insight-card {
+    padding: 20px; border-radius: 14px;
+    background: linear-gradient(135deg, rgba(79,70,229,0.06), rgba(236,72,153,0.06));
+    border: 1px solid rgba(79,70,229,0.12);
+    margin-bottom: 16px;
+  }
+  .insight-title { font-weight: 700; font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .insight-body { font-size: 14px; line-height: 1.7; color: var(--slate-700); margin: 0; }
+
+  .next-hook {
+    padding: 14px 16px; background: #fff; border-radius: 12px;
+    border: 1px solid rgba(15,23,42,0.06); margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .next-hook-text { font-weight: 500; line-height: 1.5; font-size: 14px; flex: 1; }
+
+  .url-input-bar {
+    display: flex; gap: 8px; padding: 16px;
+    background: #fff; border-radius: 14px;
+    border: 1px solid rgba(15,23,42,0.08);
+    margin-bottom: 24px; align-items: center;
+  }
+  .url-input-bar .input { flex: 1; }
+  .url-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 8px;
+    background: var(--slate-100); font-size: 13px; font-weight: 500;
+  }
+  .url-tag .x { color: var(--slate-400); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="logo" style="text-decoration:none">
+    <img src="../images/logo.png" alt="Tsukami" class="logo-img">
+  </a>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="btn-ghost" style="padding:8px 16px;font-size:14px">分析</button>
+    <button class="btn-ghost" style="padding:8px 16px;font-size:14px">履歴</button>
+    <button class="btn-primary" style="padding:8px 16px;font-size:14px">+ 新規レポート</button>
+    <div style="width:32px;height:32px;border-radius:9999px;background:linear-gradient(135deg,#4F46E5,#EC4899);margin-left:8px"></div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-head">
+    <div>
+      <span class="chip chip-primary" style="margin-bottom:8px;display:inline-flex;align-items:center;gap:6px"><img src="../images/storyset/data-report.svg" style="width:16px;height:16px;object-fit:contain"> パフォーマンスレポート</span>
+      <h1 class="page-title">@your_account の直近30日</h1>
+      <p class="page-sub">5投稿のフック × 実績データを分析しました（2026年4月26日〜5月25日）</p>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-ghost" style="padding:10px 16px;font-size:14px;display:inline-flex;align-items:center;gap:6px"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> 更新</button>
+      <button class="btn-ghost" style="padding:10px 16px;font-size:14px;display:inline-flex;align-items:center;gap:6px"><svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> 共有</button>
+      <button class="btn-primary" style="padding:10px 16px;font-size:14px;display:inline-flex;align-items:center;gap:6px"><svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> PDFで保存</button>
+    </div>
+  </div>
+
+  <!-- URL Input Bar (for adding more posts) -->
+  <div class="url-input-bar">
+    <input class="input" placeholder="https://www.instagram.com/p/... をここに貼り付け" style="border:none;box-shadow:none">
+    <span class="url-tag" style="display:inline-flex;align-items:center;gap:6px"><img src="../images/instagram.png" class="brand-icon-sm" alt=""> 5件取得済 <span class="x"><svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></span>
+    <button class="btn-primary" style="padding:10px 18px;font-size:14px">+ 取り込む</button>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="summary-grid">
+    <div class="stat-card">
+      <div class="stat-label">平均スコア</div>
+      <div class="stat-val gradient-text">72</div>
+      <div class="stat-trend" style="display:inline-flex;align-items:center;gap:4px"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> 業界平均 +14</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">平均インプ</div>
+      <div class="stat-val">28.4K</div>
+      <div class="stat-trend" style="display:inline-flex;align-items:center;gap:4px"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> 前月比 +32%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">エンゲージ率</div>
+      <div class="stat-val">8.2%</div>
+      <div class="stat-trend" style="display:inline-flex;align-items:center;gap:4px"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg> 前月比 +1.1pt</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ベストフック</div>
+      <div class="stat-val">92</div>
+      <div class="stat-trend down" style="display:inline-flex;align-items:center;gap:4px"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg> ワーストフック: 41</div>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <!-- LEFT: Table -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:20px 24px;border-bottom:1px solid rgba(15,23,42,0.04);display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:16px;font-weight:700">投稿別 × フックスコア</div>
+        <select class="select" style="width:auto;font-size:13px;padding:6px 10px">
+          <option>スコア順</option>
+          <option>再生数順</option>
+          <option>日付順</option>
+        </select>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>投稿</th>
+            <th>フック</th>
+            <th style="text-align:right">スコア</th>
+            <th style="text-align:right">再生数</th>
+            <th style="text-align:right">エンゲ率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="post-thumb"></span></td>
+            <td class="hook-cell">「99%が間違ってる、コスメの順番。」</td>
+            <td style="text-align:right"><span class="score-pill high">92</span></td>
+            <td style="text-align:right" class="views-mono">68.2K</td>
+            <td style="text-align:right" class="views-mono">12.4%</td>
+          </tr>
+          <tr>
+            <td><span class="post-thumb b2"></span></td>
+            <td class="hook-cell">「メイク歴15年が選ぶ、本当に買って良かったプチプラ3選。」</td>
+            <td style="text-align:right"><span class="score-pill high">84</span></td>
+            <td style="text-align:right" class="views-mono">42.1K</td>
+            <td style="text-align:right" class="views-mono">9.8%</td>
+          </tr>
+          <tr>
+            <td><span class="post-thumb b3"></span></td>
+            <td class="hook-cell">「3000円以下とは思えない神コスメ。」</td>
+            <td style="text-align:right"><span class="score-pill mid">76</span></td>
+            <td style="text-align:right" class="views-mono">21.3K</td>
+            <td style="text-align:right" class="views-mono">7.2%</td>
+          </tr>
+          <tr>
+            <td><span class="post-thumb b4"></span></td>
+            <td class="hook-cell">「春の新作コスメまとめてみました。」</td>
+            <td style="text-align:right"><span class="score-pill mid">68</span></td>
+            <td style="text-align:right" class="views-mono">8.7K</td>
+            <td style="text-align:right" class="views-mono">5.1%</td>
+          </tr>
+          <tr>
+            <td><span class="post-thumb b5"></span></td>
+            <td class="hook-cell">「コスメレビューやってみた。」</td>
+            <td style="text-align:right"><span class="score-pill low">41</span></td>
+            <td style="text-align:right" class="views-mono">2.1K</td>
+            <td style="text-align:right" class="views-mono">2.8%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="padding:16px 24px;background:rgba(79,70,229,0.03);border-top:1px solid rgba(15,23,42,0.04);display:flex;align-items:center;gap:12px">
+        <span style="font-size:14px;color:var(--slate-700)"><strong>相関係数 r = 0.87</strong> — Tsukamiのスコアと実際の再生数は強く相関しています</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: Insights -->
+    <div>
+      <div class="insight-card">
+        <div class="insight-title"><img src="../images/storyset/light-bulb.svg" style="width:28px;height:28px;object-fit:contain;flex-shrink:0"> 伸びたフックの共通パターン</div>
+        <p class="insight-body">
+          スコア80以上の投稿には <strong>「具体的な数字」「常識破壊（実は/99%）」「年数や立場の権威」</strong> が共通して含まれていました。特に「99%が」のフレーズは平均より+34%伸びています。
+        </p>
+      </div>
+
+      <div class="insight-card" style="background:linear-gradient(135deg,rgba(244,63,94,0.06),rgba(245,158,11,0.06));border-color:rgba(244,63,94,0.12)">
+        <div class="insight-title"><img src="../images/storyset/warning.svg" style="width:28px;height:28px;object-fit:contain;flex-shrink:0"> 伸びなかった投稿の傾向</div>
+        <p class="insight-body">
+          スコア60以下の投稿は <strong>「やってみた」「まとめてみた」</strong> など抽象的・受動的な表現で始まっています。視聴者の「自分ごと感」と好奇心ギャップが弱い傾向。
+        </p>
+      </div>
+
+      <div style="margin-top:24px">
+        <div style="font-weight:700;font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+          <img src="../images/storyset/innovation.svg" style="width:28px;height:28px;object-fit:contain"> 次にやるべきフック提案
+        </div>
+
+        <div class="next-hook">
+          <div class="next-hook-text">「メイク講師15年でも知らなかった、コスメの正しい順番。」</div>
+          <button class="btn-ghost" style="padding:6px 12px;font-size:13px;flex-shrink:0">分析 →</button>
+        </div>
+
+        <div class="next-hook">
+          <div class="next-hook-text">「30代女性の99%が間違えてる、夜のスキンケア。」</div>
+          <button class="btn-ghost" style="padding:6px 12px;font-size:13px;flex-shrink:0">分析 →</button>
+        </div>
+
+        <div class="next-hook">
+          <div class="next-hook-text">「2000円以下とは絶対バレない、デパコス級プチプラ。」</div>
+          <button class="btn-ghost" style="padding:6px 12px;font-size:13px;flex-shrink:0">分析 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scatter Chart Section -->
+  <div class="card" style="margin-top:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700">スコア × 再生数 の相関</div>
+      <span class="chip">過去30日 / 5投稿</span>
+    </div>
+    <div style="height:300px"><canvas id="scatter"></canvas></div>
+  </div>
+
+</div>
+
+<script>
+new Chart(document.getElementById('scatter'), {
+  type: 'scatter',
+  data: {
+    datasets: [{
+      label: '投稿',
+      data: [
+        { x: 92, y: 68.2 },
+        { x: 84, y: 42.1 },
+        { x: 76, y: 21.3 },
+        { x: 68, y: 8.7 },
+        { x: 41, y: 2.1 }
+      ],
+      backgroundColor: '#4F46E5',
+      pointRadius: 8,
+      pointHoverRadius: 11,
+    }, {
+      label: 'トレンド',
+      type: 'line',
+      data: [
+        { x: 40, y: 1.5 }, { x: 95, y: 70 }
+      ],
+      borderColor: '#EC4899',
+      borderDash: [6,4],
+      pointRadius: 0,
+      borderWidth: 1.5
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { title: { display: true, text: 'Tsukamiスコア', color: '#94A3B8', font: { size: 12 } }, min: 30, max: 100, grid: { color: 'rgba(15,23,42,0.04)' } },
+      y: { title: { display: true, text: '再生数 (K)', color: '#94A3B8', font: { size: 12 } }, min: 0, grid: { color: 'rgba(15,23,42,0.04)' } }
+    }
+  }
+});
+</script>
+</body>
+</html>

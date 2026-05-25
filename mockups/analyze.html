@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分析 — Tsukami</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body {
+    color: #0F172A;
+    background:
+      radial-gradient(circle at 20% -10%, rgba(79,70,229,0.10) 0%, transparent 50%),
+      radial-gradient(circle at 80% 10%, rgba(236,72,153,0.08) 0%, transparent 50%),
+      #FAFAFA;
+    background-attachment: fixed;
+  }
+
+  .hero-wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 56px 24px 32px;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 9999px;
+    background: rgba(79,70,229,0.10); color: var(--primary);
+    font-size: 13px; font-weight: 600; margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin: 0 0 14px;
+    color: #0F172A;
+  }
+  .hero-sub {
+    color: #475569;
+    font-size: 17px;
+    margin: 0 0 40px;
+    line-height: 1.6;
+  }
+
+  /* GIANT centered input */
+  .hook-input-box {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow:
+      0 30px 80px rgba(15,23,42,0.10),
+      0 8px 24px rgba(79,70,229,0.08);
+    border: 2px solid rgba(15,23,42,0.06);
+    padding: 28px 28px 20px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-align: left;
+  }
+  .hook-input-box:focus-within {
+    border-color: var(--primary);
+    box-shadow:
+      0 30px 80px rgba(79,70,229,0.20),
+      0 0 0 6px rgba(79,70,229,0.10);
+  }
+
+  .hook-textarea {
+    width: 100%;
+    font-family: inherit;
+    font-size: 28px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #0F172A;
+    border: none;
+    background: transparent;
+    resize: none;
+    outline: none;
+    min-height: 90px;
+    letter-spacing: -0.01em;
+  }
+  .hook-textarea::placeholder {
+    color: #94A3B8;
+    font-weight: 500;
+  }
+
+  .hook-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(15,23,42,0.06);
+    flex-wrap: wrap;
+  }
+
+  .toolbar-options {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+
+  /* Pill-style toggles for platform */
+  .platform-pill-group {
+    display: inline-flex;
+    background: #F1F5F9;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+  }
+  .platform-pill {
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    border: none;
+    background: transparent;
+  }
+  .platform-pill.active {
+    background: #fff;
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(15,23,42,0.10);
+  }
+
+  .compact-select {
+    padding: 7px 28px 7px 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    background: #fff;
+    color: #334155;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    cursor: pointer;
+  }
+
+  .char-counter {
+    font-size: 13px;
+    color: #94A3B8;
+    font-weight: 500;
+    margin-right: 8px;
+  }
+  .analyze-btn {
+    background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(79,70,229,0.30);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .analyze-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(79,70,229,0.40);
+  }
+  .analyze-btn .kbd {
+    font-size: 11px; opacity: 0.8;
+    padding: 2px 6px; border-radius: 4px;
+    background: rgba(255,255,255,0.18);
+    font-family: 'Geist Mono', monospace;
+  }
+
+  .quick-examples {
+    margin-top: 18px;
+    display: flex; gap: 8px; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .example-chip {
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(15,23,42,0.08);
+    border-radius: 9999px;
+    font-size: 13px;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .example-chip:hover { background: #fff; border-color: var(--primary); color: var(--primary); }
+
+  .results-wrap {
+    max-width: 1100px;
+    margin: 24px auto 64px;
+    padding: 0 24px;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .hero-title { font-size: 34px; }
+    .hook-textarea { font-size: 22px; }
+    .results-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Score Hero card */
+  .score-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px;
+    border: 1px solid rgba(15,23,42,0.06);
+    box-shadow: 0 10px 30px rgba(15,23,42,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .score-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #10B981, #F59E0B, #F43F5E);
+  }
+
+  .score-eyebrow { font-size: 12px; font-weight: 700; color: #64748B; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .score-big {
+    font-family: 'Geist Mono', 'Inter', monospace;
+    font-size: 120px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+  }
+  .score-suffix { color: #94A3B8; font-size: 28px; font-weight: 600; margin-left: 8px; }
+  .growth-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 10px;
+    background: rgba(16,185,129,0.10); color: #047857;
+    font-weight: 700; font-size: 14px;
+    margin-top: 16px;
+  }
+
+  .reasoning {
+    margin-top: 24px;
+    padding: 16px;
+    background: #F8FAFC;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    font-size: 14px; line-height: 1.7; color: #334155;
+  }
+  .reasoning strong { color: #0F172A; }
+
+  /* Breakdown card */
+  .card-h {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 18px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .breakdown-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 56px;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-label { font-size: 14px; color: #475569; font-weight: 600; }
+  .breakdown-score {
+    font-family: 'Geist Mono', monospace;
+    font-weight: 700;
+    text-align: right;
+    font-size: 14px;
+    color: #0F172A;
+  }
+  .meter { height: 8px; background: #F1F5F9; border-radius: 9999px; overflow: hidden; }
+  .meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4F46E5, #EC4899);
+    border-radius: 9999px;
+  }
+  .meter-fill.low { background: linear-gradient(90deg, #F43F5E, #FB7185); }
+  .meter-fill.mid { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+
+  /* Improvement card */
+  .imp-card {
+    padding: 18px;
+    border-radius: 14px;
+    background: #F8FAFC;
+    border: 1.5px solid transparent;
+    transition: all 0.15s;
+    margin-bottom: 12px;
+  }
+  .imp-card:hover { border-color: var(--primary); background: #fff; box-shadow: 0 4px 12px rgba(79,70,229,0.08); }
+  .imp-text {
+    font-size: 17px; font-weight: 600;
+    line-height: 1.5; color: #0F172A;
+    margin-bottom: 12px;
+  }
+  .imp-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .imp-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .imp-tag {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: rgba(79,70,229,0.10);
+    color: var(--primary);
+  }
+  .imp-actions { display: flex; align-items: center; gap: 10px; }
+  .delta-up {
+    font-family: 'Geist Mono', monospace;
+    color: #047857;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .imp-score-pill {
+    font-family: 'Geist Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: rgba(16,185,129,0.10);
+    color: #047857;
+  }
+  .adopt-btn {
+    background: #0F172A;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .adopt-btn:hover { background: #1E293B; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="logo" style="text-decoration:none">
+    <img src="../images/logo.png" alt="Tsukami" class="logo-img">
+  </a>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="btn-ghost" style="padding:8px 16px;font-size:14px;color:#334155">履歴</button>
+    <button class="btn-ghost" style="padding:8px 16px;font-size:14px;color:#334155">レポート</button>
+    <span class="chip chip-primary" style="font-weight:700">Pro</span>
+    <div style="width:32px;height:32px;border-radius:9999px;background:linear-gradient(135deg,#4F46E5,#EC4899);margin-left:4px"></div>
+  </div>
+</nav>
+
+<!-- HERO: Centered prominent input -->
+<div class="hero-wrap">
+  <div class="hero-eyebrow">
+    <span class="dot-pulse"></span>
+    <span>AI評価エンジン稼働中</span>
+  </div>
+  <h1 class="hero-title">フックを<span class="gradient-text">入力</span>するだけ。</h1>
+  <p class="hero-sub">最初の3秒で視聴者の心をつかむフックを、11の観点でスコアリング＆改善提案。</p>
+
+  <div class="hook-input-box">
+    <textarea
+      class="hook-textarea"
+      placeholder="ここにフックを入力してください…  例: 3秒で痩せる方法、99%の人が知らない。"
+      id="hook">3秒で痩せる方法、実は99%の人が知らない。</textarea>
+
+    <div class="hook-toolbar">
+      <div class="toolbar-options">
+        <div class="platform-pill-group">
+          <button class="platform-pill active"><img src="../images/instagram.png" class="brand-icon-sm" alt=""> IG</button>
+          <button class="platform-pill"><img src="../images/Youtube.jpg" class="brand-icon-sm" alt=""> Shorts</button>
+          <button class="platform-pill"><img src="../images/TikTok.png" class="brand-icon-sm" alt=""> TikTok</button>
+        </div>
+        <select class="compact-select">
+          <option>フィットネス</option>
+          <option>美容・コスメ</option>
+          <option>ビジネス</option>
+          <option>料理</option>
+        </select>
+        <select class="compact-select">
+          <option>ターゲット未指定</option>
+          <option>20-30代女性</option>
+          <option>30-40代男性</option>
+          <option>会社員（副業）</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center">
+        <span class="char-counter mono"><span id="cc">23</span>字</span>
+        <button class="analyze-btn">
+          <span>分析する</span>
+          <span class="kbd">⌘ ↵</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-examples">
+    <span style="font-size:12px;color:#94A3B8;font-weight:600;padding:6px 0">例から試す:</span>
+    <button class="example-chip">「99%が間違ってる、〇〇の使い方」</button>
+    <button class="example-chip">「3秒で代謝が上がる習慣」</button>
+    <button class="example-chip">「これ知らない人、損してます」</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="results-wrap">
+
+  <!-- Top hero score card (full width) -->
+  <div class="score-card" style="margin-bottom:20px">
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:32px;align-items:center">
+      <div>
+        <div class="score-eyebrow">総合スコア</div>
+        <div style="display:flex;align-items:baseline">
+          <span class="score-big">78</span>
+          <span class="score-suffix">/ 100</span>
+        </div>
+        <div class="growth-badge">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          <span>業界平均より +18% 〜 +42% の伸びが期待できます</span>
+        </div>
+        <div class="reasoning">
+          <strong>強み:</strong> 数字（3秒・99%）の冒頭配置で視線を止める強度が高い。「実は」の常識破壊で好奇心ギャップを作れている。<br>
+          <strong>改善余地:</strong> 「痩せる方法」が抽象的。ターゲット層を明示すれば、さらに +11 が見込めます。
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div class="score-eyebrow" style="text-align:center;margin-bottom:12px">レーダー比較</div>
+        <div style="width:240px;height:240px;margin:0 auto"><canvas id="radar"></canvas></div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:8px;display:flex;justify-content:center;gap:14px">
+          <span><span style="display:inline-block;width:10px;height:2px;background:#4F46E5;vertical-align:middle"></span> あなた</span>
+          <span><span style="display:inline-block;width:10px;height:2px;background:#94A3B8;border-bottom:2px dashed #94A3B8;vertical-align:middle"></span> 業界平均</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="results-grid">
+
+    <!-- Breakdown -->
+    <div class="score-card">
+      <h3 class="card-h">内訳スコア</h3>
+      <div class="breakdown-row">
+        <span class="breakdown-label">インパクト</span>
+        <div class="meter"><div class="meter-fill" style="width:85%"></div></div>
+        <span class="breakdown-score">85</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">好奇心喚起</span>
+        <div class="meter"><div class="meter-fill" style="width:92%"></div></div>
+        <span class="breakdown-score">92</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">明確さ</span>
+        <div class="meter"><div class="meter-fill mid" style="width:64%"></div></div>
+        <span class="breakdown-score">64</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">ターゲット適合</span>
+        <div class="meter"><div class="meter-fill low" style="width:58%"></div></div>
+        <span class="breakdown-score">58</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">感情強度</span>
+        <div class="meter"><div class="meter-fill" style="width:71%"></div></div>
+        <span class="breakdown-score">71</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">具体性</span>
+        <div class="meter"><div class="meter-fill" style="width:88%"></div></div>
+        <span class="breakdown-score">88</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">プラットフォーム適合</span>
+        <div class="meter"><div class="meter-fill" style="width:79%"></div></div>
+        <span class="breakdown-score">79</span>
+      </div>
+    </div>
+
+    <!-- Improvements -->
+    <div class="score-card">
+      <h3 class="card-h">
+        <span>もう一伸びさせる3つの提案</span>
+        <button class="btn-ghost" style="padding:6px 12px;font-size:13px;display:inline-flex;align-items:center;gap:6px"><svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> 再生成</button>
+      </h3>
+
+      <div class="imp-card">
+        <div class="imp-text">30代女性が3秒で痩せる方法、99%が見落としてる落とし穴。</div>
+        <div class="imp-meta">
+          <div class="imp-tags">
+            <span class="imp-tag">ターゲット明示</span>
+            <span class="imp-tag">ペイン強調</span>
+          </div>
+          <div class="imp-actions">
+            <span class="delta-up">+11</span>
+            <span class="imp-score-pill">89</span>
+            <button class="adopt-btn">採用 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="imp-card">
+        <div class="imp-text">ジム不要。3秒で代謝が上がる、医師が教える1つの習慣。</div>
+        <div class="imp-meta">
+          <div class="imp-tags">
+            <span class="imp-tag">権威性</span>
+            <span class="imp-tag">具体性UP</span>
+          </div>
+          <div class="imp-actions">
+            <span class="delta-up">+9</span>
+            <span class="imp-score-pill">87</span>
+            <button class="adopt-btn">採用 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="imp-card">
+        <div class="imp-text">痩せない人だけが知らない、3秒のクセ。あなたは大丈夫？</div>
+        <div class="imp-meta">
+          <div class="imp-tags">
+            <span class="imp-tag">疑問形CTA</span>
+            <span class="imp-tag">恐怖訴求</span>
+          </div>
+          <div class="imp-actions">
+            <span class="delta-up">+7</span>
+            <span class="imp-score-pill">85</span>
+            <button class="adopt-btn">採用 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const ctx = document.getElementById('radar');
+new Chart(ctx, {
+  type: 'radar',
+  data: {
+    labels: ['インパクト', '好奇心', '明確さ', 'ターゲット', '感情', '具体性', 'プラットフォーム'],
+    datasets: [
+      { label: 'あなた', data: [85, 92, 64, 58, 71, 88, 79],
+        backgroundColor: 'rgba(79,70,229,0.22)',
+        borderColor: '#4F46E5', borderWidth: 2.5, pointBackgroundColor: '#4F46E5', pointRadius: 4 },
+      { label: '業界平均', data: [60, 62, 70, 68, 60, 55, 65],
+        backgroundColor: 'rgba(148,163,184,0.08)',
+        borderColor: '#94A3B8', borderWidth: 1.5, borderDash: [5,4], pointRadius: 0 }
+    ]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      r: {
+        min: 0, max: 100, ticks: { display: false },
+        angleLines: { color: 'rgba(15,23,42,0.08)' },
+        grid: { color: 'rgba(15,23,42,0.06)' },
+        pointLabels: { font: { size: 11, weight: '600', family: 'Inter, Noto Sans JP' }, color: '#334155' }
+      }
+    },
+    elements: { line: { tension: 0.05 } },
+    responsive: true, maintainAspectRatio: true
+  }
+});
+
+// Character counter
+const hook = document.getElementById('hook');
+const cc = document.getElementById('cc');
+const updateCC = () => cc.textContent = hook.value.length;
+hook.addEventListener('input', updateCC);
+updateCC();
+</script>
+
+<style>
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,209 @@
+/* Tsukami shared design tokens */
+:root {
+  --primary: #4F46E5;
+  --primary-dark: #4338CA;
+  --accent: #FB7185;
+  --accent-hot: #EC4899;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #F43F5E;
+  --ink: #0F172A;
+  --slate-700: #334155;
+  --slate-400: #94A3B8;
+  --slate-100: #F1F5F9;
+  --bg: #FAFAFA;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', 'Noto Sans JP', system-ui, sans-serif;
+  font-feature-settings: 'palt' 1;
+  background: var(--bg);
+  color: var(--ink);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace; }
+
+.gradient-hero {
+  background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.25);
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--slate-100);
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-ghost:hover { background: var(--slate-100); }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--slate-100);
+  color: var(--slate-700);
+}
+.chip-primary { background: rgba(79, 70, 229, 0.1); color: var(--primary); }
+.chip-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+.chip-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+}
+
+.input, .textarea, .select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.input:focus, .textarea:focus, .select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+.textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+.score-meter {
+  height: 8px;
+  background: var(--slate-100);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.score-meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), var(--accent-hot));
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+.logo-mark {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #4F46E5 0%, #EC4899 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 800; font-size: 14px;
+}
+
+.logo-img {
+  height: 44px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+.logo-img-sm { height: 32px; }
+.logo-img-lg { height: 64px; }
+
+/* ---- Brand icons (IG / YouTube / TikTok) ---- */
+.brand-icon {
+  width: 20px; height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+  border-radius: 4px;
+}
+.brand-icon-sm { width: 16px; height: 16px; border-radius: 3px; }
+.brand-icon-md { width: 28px; height: 28px; border-radius: 6px; }
+.brand-icon-lg { width: 56px; height: 56px; border-radius: 12px; }
+
+/* ---- Storyset illustration wrappers ---- */
+.illust {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+.illust-icon {
+  width: 64px; height: 64px;
+  object-fit: contain;
+  display: block;
+}
+.illust-icon-sm { width: 40px; height: 40px; }
+.illust-icon-lg { width: 96px; height: 96px; }
+
+/* ---- Lucide-style inline SVG icons ---- */
+.icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.icon-sm { width: 14px; height: 14px; vertical-align: -2px; }
+.icon-lg { width: 20px; height: 20px; vertical-align: -4px; }
+.icon-xl { width: 24px; height: 24px; vertical-align: -5px; }
+
+/* Status dot (pulse) */
+.dot-pulse {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: dotpulse 2s infinite;
+}
+@keyframes dotpulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.9); }
+}

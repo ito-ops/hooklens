@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>はじめての設定 — Tsukami</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&family=Geist+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  .wrap {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px 16px;
+  }
+  .onboard-card {
+    width: 100%; max-width: 600px;
+    background: #fff;
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 20px 60px rgba(15,23,42,0.08);
+    border: 1px solid rgba(15,23,42,0.04);
+  }
+
+  .progress {
+    display: flex; gap: 8px; margin-bottom: 32px;
+  }
+  .progress-bar {
+    flex: 1; height: 6px;
+    background: var(--slate-100);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4F46E5, #EC4899);
+    border-radius: 9999px;
+  }
+
+  .step-meta { color: var(--slate-400); font-size: 13px; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .step-title { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .step-desc { color: var(--slate-700); margin: 0 0 32px; font-size: 15px; line-height: 1.7; }
+
+  .field { margin-bottom: 20px; }
+  .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--slate-700); margin-bottom: 8px; }
+
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip-select {
+    padding: 8px 14px;
+    border: 1px solid #E2E8F0;
+    border-radius: 9999px;
+    background: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .chip-select.selected {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .chip-select:hover:not(.selected) {
+    background: var(--slate-100);
+  }
+
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .platform-card {
+    padding: 20px 12px;
+    border: 2px solid #E2E8F0;
+    border-radius: 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #fff;
+  }
+  .platform-card.selected {
+    border-color: var(--primary);
+    background: rgba(79,70,229,0.04);
+  }
+  .platform-card-icon { font-size: 32px; margin-bottom: 8px; }
+  .platform-card-name { font-weight: 600; font-size: 14px; }
+
+  .url-list { display: flex; flex-direction: column; gap: 8px; }
+  .url-row { display: flex; gap: 8px; align-items: center; }
+  .url-row .input { flex: 1; }
+  .url-add {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0;
+  }
+  .url-add:hover { text-decoration: underline; }
+  .icon-btn { background: none; border: none; color: var(--slate-400); cursor: pointer; padding: 8px; }
+  .icon-btn:hover { color: var(--danger); }
+
+  .nav-buttons {
+    display: flex; justify-content: space-between; margin-top: 40px;
+    padding-top: 24px; border-top: 1px solid rgba(15,23,42,0.06);
+  }
+
+  .preview-card {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(79,70,229,0.06), rgba(236,72,153,0.06));
+    border-radius: 12px;
+    font-size: 13px;
+    color: var(--slate-700);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="onboard-card">
+
+    <div style="margin-bottom:32px">
+      <img src="../images/logo.png" alt="Tsukami" class="logo-img">
+    </div>
+
+    <div class="progress">
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:100%"></div></div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:100%"></div></div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:60%"></div></div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="step-meta">STEP 3 / 4</div>
+    <h1 class="step-title">あなたの専門分野は？</h1>
+    <p class="step-desc">業界・主戦場のプラットフォーム・参考にしているアカウントを教えてください。Tsukamiはこの情報を使って、あなた専用の評価プロファイルを作ります。</p>
+
+    <div class="field">
+      <label class="field-label">会社名 / クリエイター名</label>
+      <input class="input" value="株式会社サンプル" placeholder="例: 株式会社サンプル / コスメ系yuki">
+    </div>
+
+    <div class="field">
+      <label class="field-label">主戦場のプラットフォーム（複数選択可）</label>
+      <div class="platform-grid">
+        <div class="platform-card selected">
+          <img src="../images/instagram.png" class="brand-icon-lg" alt="" style="margin-bottom:8px">
+          <div class="platform-card-name">Instagram Reels</div>
+        </div>
+        <div class="platform-card">
+          <img src="../images/Youtube.jpg" class="brand-icon-lg" alt="" style="margin-bottom:8px">
+          <div class="platform-card-name">YouTube Shorts</div>
+        </div>
+        <div class="platform-card selected">
+          <img src="../images/TikTok.png" class="brand-icon-lg" alt="" style="margin-bottom:8px">
+          <div class="platform-card-name">TikTok</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">業界・専門分野（複数選択可）</label>
+      <div class="chip-grid">
+        <div class="chip-select selected">美容・コスメ</div>
+        <div class="chip-select">フィットネス</div>
+        <div class="chip-select">ファッション</div>
+        <div class="chip-select selected">グルメ・料理</div>
+        <div class="chip-select">旅行</div>
+        <div class="chip-select">BtoB SaaS</div>
+        <div class="chip-select">マーケティング</div>
+        <div class="chip-select">副業・起業</div>
+        <div class="chip-select">投資・金融</div>
+        <div class="chip-select">教育・受験</div>
+        <div class="chip-select">プログラミング</div>
+        <div class="chip-select">自己啓発</div>
+        <div class="chip-select">子育て・育児</div>
+        <div class="chip-select">ペット</div>
+        <div class="chip-select">健康・医療</div>
+        <div class="chip-select">+ もっと見る</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field-label">専門的に分析させたいアカウントURL（任意・複数可）</label>
+      <p style="font-size:12px;color:var(--slate-400);margin:0 0 8px">あなたのアカウント、または参考にしている競合アカウントを入れてください。Pro機能の分析対象になります。</p>
+      <div class="url-list">
+        <div class="url-row">
+          <input class="input" value="https://www.instagram.com/your_account/" placeholder="https://www.instagram.com/...">
+          <button class="icon-btn" title="削除"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="url-row">
+          <input class="input" value="https://www.tiktok.com/@reference_creator" placeholder="https://www.tiktok.com/@...">
+          <button class="icon-btn" title="削除"><svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+      </div>
+      <button class="url-add">+ URLを追加</button>
+    </div>
+
+    <div class="preview-card" style="display:flex;gap:14px;align-items:center">
+      <img src="../images/storyset/target.svg" class="illust-icon-sm" alt="">
+      <div>
+        <strong style="display:block;margin-bottom:4px">プロファイル プレビュー</strong>
+        「<strong>株式会社サンプル</strong>」さん（IG Reels × TikTok 中心 / 美容・グルメ）の文脈で、フックを評価・改善案生成します。
+      </div>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="btn-ghost">← 戻る</button>
+      <button class="btn-primary">次へ →</button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
