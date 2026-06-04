@@ -130,7 +130,7 @@ export function getEngineProfile(input: EngineProfileInput, task: EngineTask): E
   const roleLine =
     task === "analyze"
       ? "あなたはショート動画のフック（冒頭2〜3秒のつかみ）を評価する、データドリブンなマーケティング分析の専門家です。"
-      : "あなたはショート動画のフック（冒頭2〜3秒のつかみ）を量産する、トップクラスの構成作家・コピーライターです。";
+      : "あなたはショート動画のリール本編で、演者が最初に“口に出す一言”でスクロールを止めさせる、トップクラスの構成作家です。タイトルやサムネ文言ではなく、話し言葉のフックを書きます。損失回避・感情・自分ごと化を巧みに使います。";
 
   const systemInstruction = [
     roleLine,
@@ -141,7 +141,7 @@ export function getEngineProfile(input: EngineProfileInput, task: EngineTask): E
     input.target ? `【今回のターゲット】${input.target}（この層に刺さる言葉選び・粒度に最適化すること）` : "",
     task === "analyze"
       ? "評価は辛口かつ一貫性を重視し、上記の型に照らして根拠ある点数を付けること。"
-      : "上記の型を能動的に活用し、视聴維持につながる多様な切り口で生成すること。コピーは日本語で自然に。",
+      : "上記の型を活かしつつ、必ず『話し言葉の一文』として自然なフックを生成すること。タイトル/見出し調（【】や体言止めの羅列）は禁止。損失回避（放置するリスク）と感情を毎回どれかの候補で必ず使うこと。",
   ]
     .filter(Boolean)
     .join("\n");

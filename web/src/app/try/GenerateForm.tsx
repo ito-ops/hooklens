@@ -17,6 +17,7 @@ interface GeneratedHook {
   text: string;
   appliedTechniques: string[];
   rationale: string;
+  score: number;
   baseScore: number;
   predictedScore: number;
 }
@@ -50,7 +51,7 @@ export function GenerateForm() {
         throw new Error(data.error ?? "生成に失敗しました");
       }
       const data: { hooks: GeneratedHook[] } = await res.json();
-      setHooks([...data.hooks].sort((a, b) => b.baseScore - a.baseScore));
+      setHooks([...data.hooks].sort((a, b) => b.score - a.score));
     } catch (e) {
       setError(e instanceof Error ? e.message : "生成に失敗しました");
     } finally {
@@ -170,7 +171,7 @@ export function GenerateForm() {
                 className="flex flex-col gap-3 rounded-2xl bg-violet-50/40 p-4 transition hover:bg-white hover:shadow-md hover:shadow-violet-200/40 md:flex-row md:items-center"
               >
                 <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-white px-3 py-2 ring-1 ring-violet-100">
-                  <span className="font-mono text-lg font-bold text-[var(--color-primary)]">{h.baseScore}</span>
+                  <span className="font-mono text-lg font-bold text-[var(--color-primary)]">{h.score}</span>
                   <span className="text-[9px] font-semibold text-[var(--color-ink-mute)]">推定スコア</span>
                 </div>
                 <div className="flex-1">
