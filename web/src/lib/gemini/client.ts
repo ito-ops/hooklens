@@ -10,12 +10,22 @@ export function getGemini() {
   return _client;
 }
 
-export function getGeminiModel() {
+export interface GeminiModelOptions {
+  /** 上書きするモデル名（未指定なら env の GEMINI_MODEL）。 */
+  model?: string;
+  temperature?: number;
+  /** 入力に合わせて切り替えるシステム指示。 */
+  systemInstruction?: string;
+  responseMimeType?: string;
+}
+
+export function getGeminiModel(opts: GeminiModelOptions = {}) {
   return getGemini().getGenerativeModel({
-    model: geminiEnv().GEMINI_MODEL,
+    model: opts.model ?? geminiEnv().GEMINI_MODEL,
+    systemInstruction: opts.systemInstruction,
     generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.4,
+      responseMimeType: opts.responseMimeType ?? "application/json",
+      temperature: opts.temperature ?? 0.4,
     },
   });
 }

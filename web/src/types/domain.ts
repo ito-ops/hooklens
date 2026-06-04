@@ -6,6 +6,8 @@ export type Platform = "instagram" | "shorts" | "tiktok";
 export type Plan = "free" | "pro" | "team";
 
 export type Industry =
+  | "working-holiday"
+  | "study-abroad"
   | "beauty"
   | "fitness"
   | "fashion"

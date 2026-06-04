@@ -4,6 +4,7 @@ import { publicEnv } from "@/lib/env";
 
 const PUBLIC_PATHS = [
   "/",
+  "/try", // public, login-free test page
   "/login",
   "/signup",
   "/auth/callback",
@@ -34,6 +35,14 @@ function isPublic(pathname: string) {
  */
 export async function updateSession(request: NextRequest) {
   let proxyResponse = NextResponse.next({ request });
+  const { pathname } = request.nextUrl;
+
+  // 公開ページ・APIルートは認証セッションを必要としないため、Supabase への
+  // 往復をスキップする。これにより匿名のテスト面（/try, /api/analyze 等）が、
+  // Supabase が一時停止/不通でもハングしない。
+  if (isPublic(pathname) || pathname.startsWith("/api/")) {
+    return proxyResponse;
+  }
 
   const supabase = createServerClient(
     publicEnv().NEXT_PUBLIC_SUPABASE_URL,
@@ -59,8 +68,6 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   // Auth guard — redirect unauthenticated users away from protected pages.
   if (!user && isProtected(pathname)) {

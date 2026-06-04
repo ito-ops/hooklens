@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import type { AnalysisResult, ImprovementSuggestion } from "@/types/domain";
 import { scoreHook, scoreHookBaseOnly } from "@/lib/scoring";
@@ -22,11 +23,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid request", details: String(e) }, { status: 400 });
   }
 
-  /* ---------- 2. Auth (optional in dev, required in prod) ---------- */
+  /* ---------- 2. Auth (optional) ---------- */
+  // 匿名アクセス（Supabase の認証 Cookie が無い）では Supabase への往復を
+  // 完全にスキップする。公開テストページの匿名利用を高速化し、Supabase が
+  // 停止/不通でも分析が即時に動作する。
+  const cookieStore = await cookies();
+  const hasSession = cookieStore.getAll().some((c) => c.name.startsWith("sb-"));
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = hasSession ? (await supabase.auth.getUser()).data.user : null;
 
   /* ---------- 3. Free-plan daily quota check ---------- */
   if (user) {

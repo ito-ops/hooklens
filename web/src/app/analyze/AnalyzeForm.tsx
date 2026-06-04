@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { AnalysisResult, BreakdownScores, Platform } from "@/types/domain";
+import { groupedIndustries } from "@/lib/industries";
 
 const PLATFORMS: { id: Platform; label: string; img: string }[] = [
   { id: "instagram", label: "IG", img: "/brand/instagram.png" },
@@ -10,17 +11,7 @@ const PLATFORMS: { id: Platform; label: string; img: string }[] = [
   { id: "tiktok", label: "TikTok", img: "/brand/tiktok.png" },
 ];
 
-const INDUSTRIES = [
-  "beauty", "fitness", "fashion", "food", "saas", "marketing",
-  "side-business", "finance", "education", "self-improvement", "parenting", "health",
-] as const;
-
-const INDUSTRY_LABELS: Record<string, string> = {
-  beauty: "美容・コスメ", fitness: "フィットネス", fashion: "ファッション",
-  food: "グルメ・料理", saas: "BtoB SaaS", marketing: "マーケティング",
-  "side-business": "副業・起業", finance: "投資・金融", education: "教育・受験",
-  "self-improvement": "自己啓発", parenting: "子育て", health: "健康・医療",
-};
+const INDUSTRY_GROUPS = groupedIndustries();
 
 const BREAKDOWN_LABELS: Record<keyof BreakdownScores, string> = {
   impact: "インパクト",
@@ -32,7 +23,15 @@ const BREAKDOWN_LABELS: Record<keyof BreakdownScores, string> = {
   platformFit: "プラットフォーム適合",
 };
 
-export function AnalyzeForm() {
+export function AnalyzeForm({
+  onResult,
+}: {
+  /** 分析成功ごとに呼ばれる（公開 /try ページのフィードバック用）。任意。 */
+  onResult?: (
+    result: AnalysisResult,
+    input: { hookText: string; platform: Platform; industry: string; target?: string },
+  ) => void;
+} = {}) {
   const [hookText, setHookText] = useState("3秒で痩せる方法、実は99%の人が知らない。");
   const [platform, setPlatform] = useState<Platform>("instagram");
   const [industry, setIndustry] = useState<string>("fitness");
@@ -62,6 +61,7 @@ export function AnalyzeForm() {
       }
       const data: AnalysisResult = await res.json();
       setResult(data);
+      onResult?.(data, { hookText, platform, industry, target: target || undefined });
     } catch (e) {
       setError(e instanceof Error ? e.message : "分析に失敗しました");
     } finally {
@@ -119,8 +119,12 @@ export function AnalyzeForm() {
                 onChange={(e) => setIndustry(e.target.value)}
                 className="rounded-xl border border-violet-100 bg-white px-3 py-1.5 text-xs font-semibold text-[var(--color-ink-soft)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-3 focus:ring-violet-100"
               >
-                {INDUSTRIES.map((i) => (
-                  <option key={i} value={i}>{INDUSTRY_LABELS[i] ?? i}</option>
+                {INDUSTRY_GROUPS.map((g) => (
+                  <optgroup key={g.group} label={g.group}>
+                    {g.options.map((o) => (
+                      <option key={o.id} value={o.id}>{o.label}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               <input

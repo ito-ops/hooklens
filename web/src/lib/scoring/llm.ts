@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getGeminiModel } from "@/lib/gemini/client";
+import { getEngineProfile } from "@/lib/ai/engine-profile";
 import type { ScoringInput } from "./types";
 
 const llmResponseSchema = z.object({
@@ -34,8 +35,8 @@ const PLATFORM_NAMES = {
 
 function buildPrompt(input: ScoringInput): string {
   const platformName = PLATFORM_NAMES[input.platform];
-  return `あなたはショート動画マーケティングの専門家です。
-以下のフックを評価し、改善案を3〜5パターン提示してください。
+  return `以下のフックを評価し、改善案を3〜5パターン提示してください。
+評価観点・オーディエンス像はシステム指示に従うこと。
 
 【フック】「${input.hookText}」
 【プラットフォーム】${platformName}
@@ -72,7 +73,13 @@ function extractJson(raw: string): unknown {
 }
 
 export async function runLlmLayer(input: ScoringInput): Promise<LlmResult> {
-  const model = getGeminiModel();
+  // 入力（プラットフォーム/業界/ターゲット）に合わせてエンジンを最適化。
+  const profile = getEngineProfile(input, "analyze");
+  const model = getGeminiModel({
+    model: profile.model,
+    temperature: profile.temperature,
+    systemInstruction: profile.systemInstruction,
+  });
   const { response } = await model.generateContent(buildPrompt(input));
   const text = response.text();
   const parsed = llmResponseSchema.parse(extractJson(text));
