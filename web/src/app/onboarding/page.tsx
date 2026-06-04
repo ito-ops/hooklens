@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { saveProfileAction } from "./actions";
+import type { Platform } from "@/types/domain";
 
 const PLATFORMS = [
   { id: "instagram", name: "Instagram Reels", img: "/brand/instagram.png" },
@@ -31,14 +32,15 @@ const INDUSTRIES = [
 ];
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [companyName, setCompanyName] = useState("");
-  const [platforms, setPlatforms] = useState<string[]>([]);
+  const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [industries, setIndustries] = useState<string[]>([]);
   const [urls, setUrls] = useState<string[]>([""]);
+  const [saving, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
-  const togglePlatform = (id: string) =>
+  const togglePlatform = (id: Platform) =>
     setPlatforms((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const toggleIndustry = (i: string) =>
     setIndustries((s) => (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]));
@@ -56,21 +58,40 @@ export default function OnboardingPage() {
     step === 4;
 
   const finish = () => {
-    // TODO: send to /api/profiles when Supabase wired up
-    router.push("/dashboard");
+    setError(null);
+    startTransition(async () => {
+      const result = await saveProfileAction({
+        companyName,
+        platforms,
+        industries,
+        urls,
+      });
+      // saveProfileAction redirects on success; only return value is an error.
+      if (result && "error" in result && result.error) setError(result.error);
+    });
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8">
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-100 bg-white p-12 shadow-xl shadow-slate-200/40">
-        <div className="mb-8">
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(circle at 30% 10%, rgba(124,110,245,0.20) 0%, transparent 55%), radial-gradient(circle at 80% 30%, rgba(255,93,143,0.12) 0%, transparent 55%)",
+        }}
+      />
+      <div className="surface-card w-full max-w-2xl p-10 md:p-12">
+        <div className="mb-8 flex items-center justify-between">
           <Image src="/logo.png" alt="Tsukami" width={300} height={89} className="h-10 w-auto" />
+          <span className="rounded-full bg-violet-50 px-3 py-1 text-[11px] font-bold text-[var(--color-primary)]">
+            STEP {step} / 4
+          </span>
         </div>
 
         {/* Progress */}
         <div className="mb-8 flex gap-2">
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+            <div key={s} className="h-1.5 flex-1 overflow-hidden rounded-full bg-violet-100">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent-hot)] transition-all duration-300"
                 style={{ width: step >= s ? "100%" : "0%" }}
@@ -79,27 +100,23 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        <div className="mb-2 text-xs font-bold tracking-wider text-slate-400">
-          STEP {step} / 4
-        </div>
-
         {step === 1 && (
           <>
             <h1 className="mb-2 text-2xl font-bold tracking-tight md:text-3xl">
               はじめまして。
             </h1>
-            <p className="mb-8 text-sm leading-relaxed text-slate-600">
+            <p className="mb-8 text-sm leading-relaxed text-[var(--color-ink-soft)]">
               何とお呼びすればよいですか？個人クリエイターでも法人でもOKです。
             </p>
             <div className="mb-10">
-              <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+              <label className="mb-1.5 block text-xs font-semibold text-[var(--color-ink-soft)]">
                 会社名 / クリエイター名
               </label>
               <input
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="例: 株式会社サンプル / コスメ系yuki"
-                className="w-full rounded-lg border border-slate-200 px-3.5 py-3 text-base transition focus:border-[var(--color-primary)] focus:outline-none focus:ring-3 focus:ring-indigo-100"
+                className="w-full rounded-2xl border border-violet-100 bg-white px-4 py-3 text-base transition focus:border-[var(--color-primary)] focus:outline-none focus:ring-3 focus:ring-violet-100"
               />
             </div>
           </>
@@ -110,7 +127,7 @@ export default function OnboardingPage() {
             <h1 className="mb-2 text-2xl font-bold tracking-tight md:text-3xl">
               主戦場のプラットフォームは？
             </h1>
-            <p className="mb-8 text-sm leading-relaxed text-slate-600">
+            <p className="mb-8 text-sm leading-relaxed text-[var(--color-ink-soft)]">
               複数選択できます。投稿しているプラットフォームすべて選んでください。
             </p>
             <div className="mb-10 grid grid-cols-3 gap-3">
@@ -123,8 +140,8 @@ export default function OnboardingPage() {
                     onClick={() => togglePlatform(p.id)}
                     className={`flex flex-col items-center rounded-2xl border-2 px-3 py-5 transition ${
                       selected
-                        ? "border-[var(--color-primary)] bg-indigo-50/40"
-                        : "border-slate-200 bg-white hover:bg-slate-50"
+                        ? "border-[var(--color-primary)] bg-violet-50/60"
+                        : "border-violet-100 bg-white hover:bg-violet-50/40"
                     }`}
                   >
                     <Image
@@ -147,7 +164,7 @@ export default function OnboardingPage() {
             <h1 className="mb-2 text-2xl font-bold tracking-tight md:text-3xl">
               業界・専門分野は？
             </h1>
-            <p className="mb-8 text-sm leading-relaxed text-slate-600">
+            <p className="mb-8 text-sm leading-relaxed text-[var(--color-ink-soft)]">
               複数選択できます。フックの評価軸を業界に合わせて調整します。
             </p>
             <div className="mb-10 flex flex-wrap gap-2">
@@ -158,10 +175,10 @@ export default function OnboardingPage() {
                     key={i}
                     type="button"
                     onClick={() => toggleIndustry(i)}
-                    className={`rounded-full border px-4 py-2 text-sm transition ${
+                    className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
                       selected
-                        ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white"
-                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                        ? "border-[var(--color-primary)] bg-[var(--color-primary)] text-white shadow-sm shadow-violet-300/40"
+                        : "border-violet-100 bg-white text-[var(--color-ink-soft)] hover:bg-violet-50/40"
                     }`}
                   >
                     {i}
@@ -177,7 +194,7 @@ export default function OnboardingPage() {
             <h1 className="mb-2 text-2xl font-bold tracking-tight md:text-3xl">
               参考にしたいアカウントは？
             </h1>
-            <p className="mb-8 text-sm leading-relaxed text-slate-600">
+            <p className="mb-8 text-sm leading-relaxed text-[var(--color-ink-soft)]">
               ご自身のアカウント、または参考にしている競合アカウントのURLを貼ってください（任意・複数可）。
             </p>
             <div className="mb-10 space-y-2">
@@ -187,13 +204,13 @@ export default function OnboardingPage() {
                     value={u}
                     onChange={(e) => updateUrl(i, e.target.value)}
                     placeholder="https://www.instagram.com/your_account/"
-                    className="flex-1 rounded-lg border border-slate-200 px-3.5 py-3 text-sm transition focus:border-[var(--color-primary)] focus:outline-none focus:ring-3 focus:ring-indigo-100"
+                    className="flex-1 rounded-2xl border border-violet-100 bg-white px-4 py-3 text-sm transition focus:border-[var(--color-primary)] focus:outline-none focus:ring-3 focus:ring-violet-100"
                   />
                   {urls.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeUrl(i)}
-                      className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-rose-500"
+                      className="grid size-11 place-items-center rounded-2xl bg-white text-[var(--color-ink-mute)] ring-1 ring-violet-100 hover:bg-rose-50 hover:text-rose-500"
                       title="削除"
                     >
                       <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -213,9 +230,9 @@ export default function OnboardingPage() {
               </button>
 
               {(companyName || platforms.length > 0 || industries.length > 0) && (
-                <div className="mt-6 rounded-xl bg-gradient-to-br from-indigo-50/60 to-pink-50/60 p-4 text-sm leading-relaxed text-slate-700">
-                  <strong className="mb-1 block">プロファイル プレビュー</strong>
-                  「<strong>{companyName || "—"}</strong>」さん（
+                <div className="mt-6 rounded-2xl bg-gradient-to-br from-violet-50/80 to-pink-50/60 p-5 text-sm leading-relaxed text-[var(--color-ink-soft)]">
+                  <strong className="mb-1 block text-[var(--color-ink)]">プロファイル プレビュー</strong>
+                  「<strong className="text-[var(--color-primary)]">{companyName || "—"}</strong>」さん（
                   {platforms
                     .map((id) => PLATFORMS.find((p) => p.id === id)?.name)
                     .filter(Boolean)
@@ -228,12 +245,16 @@ export default function OnboardingPage() {
           </>
         )}
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-6">
+        {error && (
+          <div className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
+        )}
+
+        <div className="flex items-center justify-between border-t border-violet-100 pt-6">
           <button
             type="button"
             onClick={() => setStep((s) => Math.max(1, s - 1))}
-            disabled={step === 1}
-            className="rounded-xl border border-slate-200 bg-white px-6 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white"
+            disabled={step === 1 || saving}
+            className="rounded-2xl border border-violet-100 bg-white px-6 py-2.5 text-sm font-medium text-[var(--color-ink-soft)] transition hover:bg-violet-50 disabled:opacity-30 disabled:hover:bg-white"
           >
             ← 戻る
           </button>
@@ -242,7 +263,7 @@ export default function OnboardingPage() {
               type="button"
               onClick={() => setStep((s) => s + 1)}
               disabled={!canProceed}
-              className="rounded-xl bg-[var(--color-primary)] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+              className="rounded-2xl bg-[var(--color-primary)] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-300/40 transition hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:bg-violet-200 disabled:shadow-none"
             >
               次へ →
             </button>
@@ -250,9 +271,10 @@ export default function OnboardingPage() {
             <button
               type="button"
               onClick={finish}
-              className="rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent-hot)] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/30 transition hover:-translate-y-px"
+              disabled={saving}
+              className="rounded-2xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent-hot)] px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-violet-300/40 transition hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
             >
-              はじめる →
+              {saving ? "保存中…" : "はじめる →"}
             </button>
           )}
         </div>

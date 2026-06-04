@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { AnalysisResult, ImprovementSuggestion } from "@/types/domain";
 import { scoreHook, scoreHookBaseOnly } from "@/lib/scoring";
+import { createClient } from "@/lib/supabase/server";
 
 const requestSchema = z.object({
   hookText: z.string().min(1).max(300),
@@ -10,7 +11,121 @@ const requestSchema = z.object({
   target: z.string().max(120).optional(),
 });
 
-/** Mock improvements when the LLM layer is unavailable (e.g. no API key set). */
+const FREE_DAILY_LIMIT = 5;
+
+export async function POST(req: Request) {
+  /* ---------- 1. Validate input ---------- */
+  let parsed;
+  try {
+    parsed = requestSchema.parse(await req.json());
+  } catch (e) {
+    return NextResponse.json({ error: "Invalid request", details: String(e) }, { status: 400 });
+  }
+
+  /* ---------- 2. Auth (optional in dev, required in prod) ---------- */
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  /* ---------- 3. Free-plan daily quota check ---------- */
+  if (user) {
+    const sinceMidnight = new Date();
+    sinceMidnight.setHours(0, 0, 0, 0);
+
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const plan = profileRow?.plan ?? "free";
+
+    if (plan === "free") {
+      const { count } = await supabase
+        .from("usage_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("action", "analyze")
+        .gte("created_at", sinceMidnight.toISOString());
+      if ((count ?? 0) >= FREE_DAILY_LIMIT) {
+        return NextResponse.json(
+          {
+            error: `Free プランの本日分析回数（${FREE_DAILY_LIMIT}回）に達しました。Proへアップグレードしてください。`,
+            code: "quota_exceeded",
+          },
+          { status: 429 },
+        );
+      }
+    }
+  }
+
+  /* ---------- 4. Run scoring (Gemini → fallback to base) ---------- */
+  const hasGemini = !!process.env.GEMINI_API_KEY;
+  let result: AnalysisResult;
+
+  if (hasGemini) {
+    try {
+      result = await scoreHook(parsed);
+    } catch (e) {
+      console.error("[/api/analyze] Gemini failed, falling back:", e);
+      result = baseOnlyResult(parsed);
+    }
+  } else {
+    result = baseOnlyResult(parsed);
+  }
+
+  /* ---------- 5. Persist for logged-in users ---------- */
+  if (user) {
+    await Promise.all([
+      supabase.from("analyses").insert({
+        user_id: user.id,
+        hook_text: result.hookText,
+        platform: result.platform,
+        industry: result.industry,
+        target: result.target ?? null,
+        total_score: result.totalScore,
+        growth_range_min: result.growthRangeMin,
+        growth_range_max: result.growthRangeMax,
+        breakdown: result.breakdown,
+        improvements: result.improvements,
+        base_score: result.baseScore,
+        llm_score: result.llmScore,
+        reasoning: result.reasoning,
+      }),
+      supabase.from("usage_logs").insert({
+        user_id: user.id,
+        action: "analyze",
+        cost_units: 1,
+      }),
+    ]);
+  }
+
+  return NextResponse.json(result);
+}
+
+/* ------------------------------------------------------------------ */
+
+function baseOnlyResult(input: z.infer<typeof requestSchema>): AnalysisResult {
+  const base = scoreHookBaseOnly(input);
+  return {
+    hookText: input.hookText,
+    platform: input.platform,
+    industry: input.industry as AnalysisResult["industry"],
+    target: input.target,
+    totalScore: base.total,
+    growthRangeMin: Math.round(((base.total - 50) / 50) * 60 - 18),
+    growthRangeMax: Math.round(((base.total - 50) / 50) * 60 + 18),
+    breakdown: base.breakdown,
+    baseScore: base.total,
+    llmScore: 0,
+    reasoning: {
+      strengths: detectedSummary(base.matched),
+      improvements: "ターゲットを明示・権威性の追加・常識破壊のフレーズ追加で更に伸ばせます。",
+    },
+    improvements: mockImprovements(input.hookText, base.total),
+  };
+}
+
 function mockImprovements(hookText: string, baseScore: number): ImprovementSuggestion[] {
   const candidates: Omit<ImprovementSuggestion, "delta">[] = [
     {
@@ -30,49 +145,6 @@ function mockImprovements(hookText: string, baseScore: number): ImprovementSugge
     },
   ];
   return candidates.map((c) => ({ ...c, delta: c.predictedScore - baseScore }));
-}
-
-export async function POST(req: Request) {
-  let parsed;
-  try {
-    parsed = requestSchema.parse(await req.json());
-  } catch (e) {
-    return NextResponse.json({ error: "Invalid request", details: String(e) }, { status: 400 });
-  }
-
-  // If GEMINI_API_KEY is present, use the full pipeline; otherwise fall back
-  // to the rule-based layer with mock improvements (UI-first mode).
-  const hasGemini = !!process.env.GEMINI_API_KEY;
-
-  if (hasGemini) {
-    try {
-      const result = await scoreHook(parsed);
-      return NextResponse.json(result);
-    } catch (e) {
-      console.error("[/api/analyze] Gemini failed, falling back:", e);
-      // fall through to base-only fallback
-    }
-  }
-
-  const base = scoreHookBaseOnly(parsed);
-  const result: AnalysisResult = {
-    hookText: parsed.hookText,
-    platform: parsed.platform,
-    industry: parsed.industry as AnalysisResult["industry"],
-    target: parsed.target,
-    totalScore: base.total,
-    growthRangeMin: Math.round(((base.total - 50) / 50) * 60 - 18),
-    growthRangeMax: Math.round(((base.total - 50) / 50) * 60 + 18),
-    breakdown: base.breakdown,
-    baseScore: base.total,
-    llmScore: 0,
-    reasoning: {
-      strengths: detectedSummary(base.matched),
-      improvements: "ターゲットを明示・権威性の追加・常識破壊のフレーズ追加で更に伸ばせます。",
-    },
-    improvements: mockImprovements(parsed.hookText, base.total),
-  };
-  return NextResponse.json(result);
 }
 
 function detectedSummary(matched: Record<string, string[]>): string {
