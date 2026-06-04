@@ -1,4 +1,5 @@
 import type { Platform } from "@/types/domain";
+import { loadLearnedProfile, learnedProfileToPromptBlock } from "./learned-profile";
 
 /**
  * 入力内容（プラットフォーム / 業界 / ターゲット / タスク）に合わせて
@@ -152,5 +153,23 @@ export function getEngineProfile(input: EngineProfileInput, task: EngineTask): E
     temperature: task === "analyze" ? 0.3 : 0.85,
     systemInstruction,
     industryKey: input.industry in INDUSTRY_PROFILES ? input.industry : "default",
+  };
+}
+
+/**
+ * 静的プロファイルに、週次パイプラインが蓄積した「学習プロファイル」を重ねた版。
+ * 学習データが無い/読めない場合は静的プロファイルと同じ（フォールバック）。
+ * 採点(llm.ts)・生成(generate.ts)はこちらを使う。
+ */
+export async function getEngineProfileWithLearning(
+  input: EngineProfileInput,
+  task: EngineTask,
+): Promise<EngineProfile> {
+  const base = getEngineProfile(input, task);
+  const learned = await loadLearnedProfile(input.industry);
+  if (!learned) return base;
+  return {
+    ...base,
+    systemInstruction: `${base.systemInstruction}\n${learnedProfileToPromptBlock(learned)}`,
   };
 }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { getGeminiModel } from "@/lib/gemini/client";
-import { getEngineProfile } from "@/lib/ai/engine-profile";
+import { getEngineProfileWithLearning } from "@/lib/ai/engine-profile";
 import type { ScoringInput } from "./types";
 
 const llmResponseSchema = z.object({
@@ -73,8 +73,8 @@ function extractJson(raw: string): unknown {
 }
 
 export async function runLlmLayer(input: ScoringInput): Promise<LlmResult> {
-  // 入力（プラットフォーム/業界/ターゲット）に合わせてエンジンを最適化。
-  const profile = getEngineProfile(input, "analyze");
+  // 入力（プラットフォーム/業界/ターゲット）＋学習プロファイルでエンジンを最適化。
+  const profile = await getEngineProfileWithLearning(input, "analyze");
   const model = getGeminiModel({
     model: profile.model,
     temperature: profile.temperature,

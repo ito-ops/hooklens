@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Platform } from "@/types/domain";
 import { getGeminiModel } from "@/lib/gemini/client";
-import { getEngineProfile } from "@/lib/ai/engine-profile";
+import { getEngineProfileWithLearning } from "@/lib/ai/engine-profile";
 import { runBaseLayer } from "./base";
 
 export interface GenerateInput {
@@ -105,7 +105,7 @@ export async function generateHooks(
   input: GenerateInput,
   count = 5,
 ): Promise<GeneratedHook[]> {
-  const profile = getEngineProfile(input, "generate");
+  const profile = await getEngineProfileWithLearning(input, "generate");
   const model = getGeminiModel({
     model: profile.model,
     temperature: profile.temperature,
